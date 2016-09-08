@@ -97,6 +97,13 @@ static int __init tcp_secrets_init(void)
 		return rc;
 	if (cookie_v4_check_ptr) {
 		fix_cookie_v4_check();
+	} else {
+		printk("tcp_secrets: can't find cookie_v4_check function!\n");
+		return -1;
+	}
+	if (!syncookie_secret_ptr) {
+		printk("tcp_secrets: can't find syncookie secret!\n");
+		return -2;
 	}
 	return proc_create("tcp_secrets", 0, NULL, &tcp_secrets_fops) == NULL;
 }
