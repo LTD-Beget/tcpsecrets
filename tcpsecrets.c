@@ -58,7 +58,13 @@ static int symbol_walk_callback(void *data, const char *name,
 }
 
 static struct sock *cookie_v4_check_wrapper(struct sock *sk, struct sk_buff *skb) {
-	struct sock* (*old_func)(struct sock *sk, struct sk_buff *skb) = (void*)((unsigned long)cookie_v4_check_ptr + MCOUNT_INSN_SIZE);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,18,0)
+	struct sock* (*old_func)(struct sock *sk, struct sk_buff *skb) =
+         (void*)((unsigned long)cookie_v4_check_ptr + MCOUNT_INSN_SIZE);
+#else
+	struct sock* (*old_func)(struct sock *sk, struct sk_buff *skb, struct ip_options *opt) =
+         (void*)((unsigned long)cookie_v4_check_ptr + MCOUNT_INSN_SIZE);
+#endif
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4,6,0)
 	extern int sysctl_tcp_syncookies;
