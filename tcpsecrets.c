@@ -57,14 +57,27 @@ static int symbol_walk_callback(void *data, const char *name,
 	return 0;
 }
 
-static struct sock *cookie_v4_check_wrapper(struct sock *sk, struct sk_buff *skb) {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,18,0)
-	struct sock* (*old_func)(struct sock *sk, struct sk_buff *skb) =
-         (void*)((unsigned long)cookie_v4_check_ptr + MCOUNT_INSN_SIZE);
-#else
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3,18,0)
+static struct sock *cookie_v4_check_wrapper(struct sock *sk,
+                                            struct sk_buff *skb,
+                                            struct ip_options *opt)
+{
 	struct sock* (*old_func)(struct sock *sk, struct sk_buff *skb, struct ip_options *opt) =
          (void*)((unsigned long)cookie_v4_check_ptr + MCOUNT_INSN_SIZE);
-#endif
+
+    extern int sysctl_tcp_syncookies;
+
+	if (sysctl_tcp_syncookies == 2) {
+		tcp_synq_overflow(sk);
+	}
+	return old_func(sk, skb, opt);
+}
+#else
+static struct sock *cookie_v4_check_wrapper(struct sock *sk,
+                                            struct sk_buff *skb) {
+	struct sock* (*old_func)(struct sock *sk, struct sk_buff *skb) =
+         (void*)((unsigned long)cookie_v4_check_ptr + MCOUNT_INSN_SIZE);
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4,6,0)
 	extern int sysctl_tcp_syncookies;
@@ -77,6 +90,7 @@ static struct sock *cookie_v4_check_wrapper(struct sock *sk, struct sk_buff *skb
 	}
 	return old_func(sk, skb);
 }
+#endif
 
 static void notrace
 tcpsecrets_ftrace_handler(unsigned long ip, unsigned long parent_ip,
