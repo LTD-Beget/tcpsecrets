@@ -7,10 +7,17 @@
 #include <linux/ftrace.h>
 #include <linux/version.h>
 #include <net/tcp.h>
+#include "system_map.inc"
+
+#ifndef SYNCOOKIE_SECRET_ADDR
+#define SYNCOOKIE_SECRET_ADDR 0x0
+#endif
 
 static void *cookie_v4_check_ptr;
 
-static u32 (*syncookie_secret_ptr)[2][16-4+SHA_DIGEST_WORDS];
+static u32 (*syncookie_secret_ptr)[2][16-4+SHA_DIGEST_WORDS] = (void*)SYNCOOKIE_SECRET_ADDR;
+
+static struct proc_dir_entry *proc_entry;
 
 static int tcp_secrets_show(struct seq_file *m, void *v)
 {
@@ -105,7 +112,7 @@ static int __init tcp_secrets_init(void)
 		printk("tcp_secrets: can't find syncookie secret!\n");
 		return -2;
 	}
-	return proc_create("tcp_secrets", 0, NULL, &tcp_secrets_fops) == NULL;
+	return (proc_entry = proc_create("tcp_secrets", 0, NULL, &tcp_secrets_fops)) == NULL;
 }
 
 module_init(tcp_secrets_init);
@@ -113,6 +120,7 @@ module_init(tcp_secrets_init);
 static void __exit tcp_secrets_exit(void)
 {
 	int ret;
+
 	if (cookie_v4_check_ptr) {
 		ret = unregister_ftrace_function(&tcpsecrets_ftrace_ops);
 		if (ret) {
@@ -122,8 +130,11 @@ static void __exit tcp_secrets_exit(void)
 		if (ret) {
 			printk("can't unregister filter\n");
 		}
+        cookie_v4_check_ptr = 0;
 	}
-	remove_proc_entry("tcp_secrets", 0);
+    syncookie_secret_ptr = 0;
+    if (proc_entry)
+        remove_proc_entry("tcp_secrets", 0);
 }
 
 module_exit(tcp_secrets_exit);
