@@ -162,4 +162,4 @@ module_exit(tcp_secrets_exit);
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Alexander Polyakov <apolyakov@beget.ru>");
 MODULE_DESCRIPTION("Provide access to tcp syncookie secrets via /proc/tcp_secrets");
-MODULE_VERSION("1.0");
+MODULE_VERSION("1.1");
