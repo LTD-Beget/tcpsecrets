@@ -1,0 +1,22 @@
+COMMIT_REV := $(shell git describe --always --abbrev=12)
+DKMS_DSTDIR ?= /var/lib/dkms/tcpsecrets/$(COMMIT_REV)/source
+KERNEL_VERSION ?= $(shell uname -r)
+
+.PHONY: all install build install_source clean
+
+all: install
+
+install: build
+	dkms install -m tcpsecrets -v $(COMMIT_REV) -k $(KERNEL_VERSION)
+
+build: install_sources
+	dkms build -m tcpsecrets -v $(COMMIT_REV) -k $(KERNEL_VERSION)
+
+install_sources:
+	install -o root -g root -m 0755 -d $(DKMS_DSTDIR)
+	cp -t $(DKMS_DSTDIR)/ Makefile tcpsecrets.c
+	sed "s/PACKAGE_VERSION=/PACKAGE_VERSION=$(COMMIT_REV)/" dkms.conf > "$(DKMS_DSTDIR)/dkms.conf"
+
+clean:
+	$(MAKE) -f Makefile clean
+	dkms remove -m tcpsecrets -v $(COMMIT_REV) --all

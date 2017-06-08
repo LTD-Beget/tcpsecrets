@@ -1,7 +1,7 @@
 obj-m := tcpsecrets.o
 
-KVER  := $(shell uname -r)
-KDIR  :=  /lib/modules/${KVER}/build
+KVER  ?= $(shell uname -r)
+KDIR  ?=  /lib/modules/${KVER}/build
 PWD   := $(shell pwd)
 
 default: system_map.inc
