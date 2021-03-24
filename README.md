@@ -1,5 +1,5 @@
 # tcpsecrets
-Linux kernel module to provide access to tcp cookie secrets via /proc/tcp_secrets
+Linux kernel module to provide access to tcp cookie secrets via `/proc/tcp_secrets`
 
 ## Tested kernels
 - 4.2.0-35-generic #40~14.04.1-Ubuntu 
@@ -27,4 +27,6 @@ CONFIG_FTRACE_MCOUNT_RECORD=y
 
 ## Install via DKMS
 
-    KERNEL_VERSION=$(uname -r) make -f Makefile.dkms
+```
+KERNEL_VERSION=$(uname -r) make -f Makefile.dkms
+```
