@@ -1,0 +1,8 @@
+*.cmd
+*.ko
+*.mod
+*.mod.c
+*.o
+Module.symvers
+modules.order
+system_map.inc
